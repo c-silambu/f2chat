@@ -1,0 +1,28 @@
+{
+  "name": "vibepulse-monorepo",
+  "version": "1.0.0",
+  "description": "Production-ready, highly scalable random video chat platform (VibePulse)",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"SERVER,CLIENT\" -c \"magenta.bold,cyan.bold\" \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "start": "concurrently -n \"SERVER,CLIENT\" -c \"magenta.bold,cyan.bold\" \"npm --prefix server start\" \"npm --prefix client run preview\"",
+    "build": "npm --prefix client run build",
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install && npm --prefix load-test install",
+    "server": "npm --prefix server run dev",
+    "client": "npm --prefix client run dev",
+    "load-test": "node load-test/simulate-traffic.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "webrtc",
+    "socketio",
+    "redis",
+    "mongodb",
+    "video-chat",
+    "matchmaking"
+  ],
+  "author": "VibePulse Team",
+  "license": "MIT"
+}
