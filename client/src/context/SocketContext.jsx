@@ -3,7 +3,22 @@ import { io } from 'socket.io-client';
 
 const SocketContext = createContext(null);
 
-const SOCKET_SERVER_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const getSocketUrl = () => {
+  if (import.meta.env.VITE_SOCKET_URL) {
+    return import.meta.env.VITE_SOCKET_URL;
+  }
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname } = window.location;
+    // If running on local network (e.g., 192.168.x.x) or localhost, connect to port 5000 on that same host
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:5000';
+    }
+    return `${protocol}//${hostname}:5000`;
+  }
+  return 'http://localhost:5000';
+};
+
+const SOCKET_SERVER_URL = getSocketUrl();
 
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);

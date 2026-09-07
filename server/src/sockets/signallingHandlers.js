@@ -1,6 +1,24 @@
 import { logger } from '../utils/logger.js';
 
 export const registerSignallingHandlers = (io, socket, matchmaker) => {
+  // WebRTC Peer Ready Handshake
+  socket.on('peer_ready', async (data = {}) => {
+    try {
+      const { roomId } = data;
+      const sessionId = socket.sessionId;
+      if (!roomId) return;
+
+      // Broadcast peer readiness to partner in room
+      socket.to(roomId).emit('peer_ready', {
+        senderId: sessionId,
+        roomId
+      });
+      logger.debug(`Relayed peer_ready for room ${roomId} from ${sessionId}`);
+    } catch (err) {
+      logger.error('Error forwarding peer_ready:', err);
+    }
+  });
+
   // WebRTC SDP Offer
   socket.on('offer', async (data = {}) => {
     try {

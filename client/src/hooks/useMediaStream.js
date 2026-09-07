@@ -9,16 +9,41 @@ export const useMediaStream = () => {
 
   const streamRef = useRef(null);
 
-  const startMedia = useCallback(async (constraints = { video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }, audio: true }) => {
+  const startMedia = useCallback(async (constraints = { video: { facingMode: 'user' }, audio: true }) => {
     setIsInitializing(true);
     setPermissionError(null);
+
+    // Check if getUserMedia is supported / secure context
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      const isHttp = typeof window !== 'undefined' && window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+      const msg = isHttp
+        ? 'Mobile browsers require HTTPS to access camera/mic. Please run via HTTPS or enable Chrome insecure origin flag (chrome://flags/#unsafely-treat-insecure-origin-as-secure).'
+        : 'Camera & Microphone access is not supported on this browser/environment.';
+      setPermissionError(msg);
+      setIsInitializing(false);
+      return null;
+    }
 
     try {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+          audio: true
+        });
+      } catch (hdErr) {
+        // Fallback for mobile devices that don't support 720p ideal
+        console.warn('Fallback to basic constraints for mobile camera:', hdErr);
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user' },
+          audio: true
+        });
+      }
+
       streamRef.current = stream;
       setLocalStream(stream);
       setIsInitializing(false);
@@ -32,6 +57,8 @@ export const useMediaStream = () => {
         message = 'No camera or microphone device found on your system.';
       } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
         message = 'Camera or microphone is already in use by another application.';
+      } else if (err.name === 'OverconstrainedError') {
+        message = 'Your device camera does not support the requested video resolution.';
       }
       setPermissionError(message);
       setIsInitializing(false);

@@ -1,13 +1,21 @@
 export const getIceServers = () => {
-  const stun = import.meta.env.VITE_STUN_SERVER || 'stun:stun.l.google.com:19302';
+  const customStun = import.meta.env.VITE_STUN_SERVER;
   const turnServer = import.meta.env.VITE_TURN_SERVER;
   const turnUsername = import.meta.env.VITE_TURN_USERNAME;
   const turnCredential = import.meta.env.VITE_TURN_CREDENTIAL;
 
   const servers = [
-    { urls: stun },
-    { urls: 'stun:stun1.l.google.com:19302' }
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' },
+    { urls: 'stun:global.stun.twilio.com:3478' }
   ];
+
+  if (customStun) {
+    servers.unshift({ urls: customStun });
+  }
 
   if (turnServer) {
     servers.push({
